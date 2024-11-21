@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Application</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+    h1 {
+      color: #4CAF50;
+    }
+    #chatContainer {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff;
+    border: 1px solid #0f0f0f;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 10px;
+    }
+    #messages {
+      border: 1px solid #ddd;
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: white;
+      flex-grow: 1;
+    }
+    #messageInputContainer {
+      margin: 5px;
+      display: flex;
+      
+      padding: 10px;
+      background-color: white;
+    }
+    #messageInput {
+      margin: 5px;
+      flex-grow: 1;
+      padding: 10px;
+      
+      border-radius: 5px;
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 10px;
+     
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #nameContainer {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px;
+    }
+    #usernameInput {
+      flex-grow: 1;
+      padding: 10px;
+      
+      border-radius: 5px;
+      outline: none;
+      font-size: 16px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chat Application</h1>
+  <div id="chatContainer">
+    <div id="nameContainer">
+      <input id="usernameInput" type="text" placeholder="Enter your name..." />
+      <button onclick="setName()">Enter</button>
+    </div>
+    <div id="messages"></div>
+    <div id="messageInputContainer">
+      <input id="messageInput" type="text" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // this will make a websocket connection with the server
+    const socket = new WebSocket('ws://localhost:5000');
+    let username = "Anonymous"; 
+
+    // connected to the server
+    socket.onopen = () => {
+      console.log("Connected to the WebSocket server.");
+    };
+
+    // this will handle when message is received from the server
+    socket.onmessage = (event) => {
+      const messagesDiv = document.getElementById('messages');
+      const newMessage = document.createElement('p');
+      newMessage.textContent = event.data;
+      messagesDiv.appendChild(newMessage);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; 
+    };
+
+    // when connection is closed
+    socket.onclose = () => {
+      console.log("Disconnected from the WebSocket server.");
+    };
+
+    // if there is an error
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+  
+    function setName() {
+      const nameInput = document.getElementById('usernameInput');
+      if (nameInput.value.trim()) {
+        username = nameInput.value.trim();
+        alert(`Your name is set to "${username}"`);
+        nameInput.disabled = true;
+        const namecontainer = document.getElementById('nameContainer');
+        namecontainer.style.display = "none";
+      } else {
+        alert('Please enter a valid name.');
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const message = input.value;
+
+      if (message) {
+        
+        socket.send(`${username}: ${message}`);
+        input.value = ''; 
+      } else {
+        alert('Enter some message.');
+      }
+    }
+  </script>
+</body>
+</html>
